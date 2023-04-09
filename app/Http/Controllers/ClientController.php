@@ -165,7 +165,7 @@ class ClientController extends Controller
             "status" => "success",
             "message" => "Client updated successfully",
             "data" => [
-                "clients" => $client
+                "client" => $client
             ]
         ];
 
