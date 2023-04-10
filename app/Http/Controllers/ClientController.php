@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Client;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Validator;
@@ -14,7 +15,7 @@ class ClientController extends Controller
      */
     public function index()
     {
-        $clients = Client::all();
+        $clients = Client::with('services')->get();
 
         if(!$clients)
         {
@@ -89,7 +90,7 @@ class ClientController extends Controller
     {
         try
         {
-            $client = Client::findOrFail($client);
+            $client = Client::with('services')->findOrFail($client);
 
             $data = [
                 "status" => "success",
@@ -198,7 +199,75 @@ class ClientController extends Controller
             "status" => "success",
             "message" => "Client deleted successfully",
             "data" => [
-                "clients" => $client
+                "client" => $client
+            ]   
+        ];
+
+        return response()->json($data);
+    }
+
+    /**
+     * Attach a specified service to a client.
+     */
+    public function attach(Request $request)
+    {
+        try
+        {
+            $client = Client::findOrFail($request->client_id);
+            $service = Service::findOrFail($request->service_id);
+        }
+        
+        catch(ModelNotFoundException $e)
+        {
+            $data = [
+                "status" => "error",
+                "message" => "Invalid client or service id"
+            ];
+
+            return response()->json($data, 404);
+        }
+
+        $client->services()->attach($request->service_id);
+        
+        $data = [
+            "status" => "success",
+            "message" => "Service attached successfully",
+            "data" => [
+                "client" => $client
+            ]   
+        ];
+
+        return response()->json($data);
+    }
+    
+    /**
+     * Detach a specified service from a client.
+     */
+    public function detach(Request $request)
+    {
+        try
+        {
+            $client = Client::findOrFail($request->client_id);
+            $service = Service::findOrFail($request->service_id);
+        }
+        
+        catch(ModelNotFoundException $e)
+        {
+            $data = [
+                "status" => "error",
+                "message" => "Invalid client or service id"
+            ];
+
+            return response()->json($data, 404);
+        }
+
+        $client->services()->detach($request->service_id);
+        
+        $data = [
+            "status" => "success",
+            "message" => "Service detached successfully",
+            "data" => [
+                "client" => $client
             ]   
         ];
 
